@@ -42,6 +42,8 @@ const player = (sign) =>{
     const getSign = () => {
         sign;
     };
+
+    return {sign, getScore, incrementScore, takeInput, getSign};
 };
 
 const gameController = (() =>{
