@@ -51,7 +51,7 @@ body {
     transform: scale(0.95);
 }
 
-.whos-turn{
+.info-holder{
     color: white;
     font-size: 32px;
     font-weight: 600;

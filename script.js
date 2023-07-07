@@ -51,7 +51,6 @@ const player = (sign) =>{
 const gameController = (() =>{
     let roundCount = 0;
     let whosTurn = "X";
-    let winner;
     const playerOne = player("X");
     const playerTwo = player("O");
 
@@ -107,7 +106,7 @@ const gameController = (() =>{
             playerTwo.incrementScore();
             console.log("O wins");
         }
-        return winner = whosTurn;
+        return screenController.restart();
     };
 
     const declareNewRound = () => {
@@ -123,10 +122,11 @@ const gameController = (() =>{
     };
 
     const getWhosTurn = () => {
-        whosTurn;
+        return whosTurn;
     };
 
     const playRound = (e) => {
+        screenController.changeWhosTurn(getWhosTurn());
         declareNewRound();
         if(whosTurn == "X"){
             playerOne.takeInput(e.target.dataset.index);
@@ -134,11 +134,13 @@ const gameController = (() =>{
         if(whosTurn == "O"){
             playerTwo.takeInput(e.target.dataset.index);
         }
+        screenController.changeSign(e.target, whosTurn);
         if(isWin()){
             end();
         }
-        e.target.removeEventListener('click', playRound);
+        screenController.removeEventListenerFromABox(e.target, 'click', playRound);
     };
+
 
     return{
         getWhosTurn,
@@ -152,9 +154,40 @@ const gameController = (() =>{
 const screenController = (() =>{
     const DOMgameBoard = document.getElementById("game-board");
     const DOMboardBoxes = document.querySelectorAll(".board-box");
+    const DOMwhosTurn = document.querySelector(".whos-turn");
     console.log(DOMboardBoxes);
     
-    DOMboardBoxes.forEach( box => box.addEventListener('click', gameController.playRound));
+    const addEventListenersToBoxes = (eventType, functionToExecute) => {
+        DOMboardBoxes.forEach( box => box.addEventListener(eventType, functionToExecute));
+    };
+
+    const removeEventListenerFromABox = (box, eventType, functionToExecute) => {
+        box.removeEventListener(eventType, functionToExecute);
+    }
+
+    const changeSign = (box, sign) => {
+        box.innerHTML = sign;
+    };
+
+    const changeWhosTurn = (sign) => {
+        DOMwhosTurn.innerHTML = `It's ${sign} turn`;
+    };
+
+    const restart = () => {
+        DOMboardBoxes.forEach( box => box.removeEventListener('click', gameController.playRound));
+        DOMboardBoxes.forEach( box => box.innerHTML = "");
+        addEventListenersToBoxes('click', gameController.playRound);
+        gameBoard.clear();
+    };
+
+    addEventListenersToBoxes('click', gameController.playRound);
+
+    return{
+        removeEventListenerFromABox,
+        changeSign,
+        changeWhosTurn,
+        restart
+    };
     // displays gameboard
     // updates gameboard
     // displays whos turn it is
