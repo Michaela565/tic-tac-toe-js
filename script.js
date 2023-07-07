@@ -23,9 +23,25 @@ const gameBoard = (() =>{
 })();
 
 const player = (sign) =>{
-    let score = 0;
     // takes input
     // stores score
+    let score = 0;
+
+    const takeInput = (index, sign) => {
+        gameBoard.setSquare(index, sign);
+    };
+
+    const incrementScore = () => {
+        ++score;
+    };
+
+    const getScore = () => {
+        score;
+    };
+
+    const getSign = () => {
+        sign;
+    };
 };
 
 const gameController = (() =>{
