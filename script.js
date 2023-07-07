@@ -83,9 +83,12 @@ const gameController = (() =>{
     };
 
     const checkDiagonals = () => {
-        console.log("checkDiagonals()");
-        if(gameBoard.getSquare(0) == gameBoard.getSquare(4) == gameBoard.getSquare(8)) return true;
-        else if(gameBoard.getSquare(2) == gameBoard.getSquare(4) == gameBoard.getSquare(6)) return true;
+        const diagonalOne = [gameBoard.getSquare(0), gameBoard.getSquare(4), gameBoard.getSquare(8)];
+        const diagonalTwo = [gameBoard.getSquare(2), gameBoard.getSquare(4), gameBoard.getSquare(6)];
+        if(diagonalOne.every( square => square == undefined)) return false;
+        if(diagonalOne.every( square => square == diagonalOne[0])) return true;
+        if(diagonalTwo.every( square => square == undefined)) return false;
+        if(diagonalTwo.every( square => square == diagonalOne[0])) return true;
         return false;
     }
 
@@ -134,6 +137,7 @@ const gameController = (() =>{
         if(isWin()){
             end();
         }
+        e.target.removeEventListener('click', playRound);
     };
 
     return{
@@ -149,12 +153,8 @@ const screenController = (() =>{
     const DOMgameBoard = document.getElementById("game-board");
     const DOMboardBoxes = document.querySelectorAll(".board-box");
     console.log(DOMboardBoxes);
-
-    const _init = (() => {
-        
-    })();
     
-    DOMboardBoxes.forEach( box => box.addEventListener('click', gameController.playRound))
+    DOMboardBoxes.forEach( box => box.addEventListener('click', gameController.playRound));
     // displays gameboard
     // updates gameboard
     // displays whos turn it is
