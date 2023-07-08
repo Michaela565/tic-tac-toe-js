@@ -1,5 +1,6 @@
 const gameBoard = (() =>{
-    // puts input into array
+    // creates the game board
+    // stores data in it
     boardArray = new Array(9);
 
     const setSquare = (index, playerSign) => {
@@ -53,7 +54,6 @@ const player = (sign) =>{
 };
 
 const gameController = (() =>{
-    let roundCount = 0;
     let whosTurn = "X";
     const playerOne = player("X");
     const playerTwo = player("O");
@@ -64,7 +64,6 @@ const gameController = (() =>{
             for (let j = i * 3; j < i * 3 + 3; j++) {
                 row.push(gameBoard.getSquare(j));
             }
-            console.log(row);
             if(row.every( square => square == undefined)) return false;
             if(row.every( square => square == row[0])) return true;
         }
@@ -72,7 +71,6 @@ const gameController = (() =>{
     };
 
     const checkColumns = () =>{
-        //console.log("checkColumns()");
         for (let i = 0; i < 3; i++) {
             let column = [];
             for (let j = i; j < i + 7; j += 3) {
@@ -96,7 +94,6 @@ const gameController = (() =>{
     }
 
     const isWin = () => {
-        console.log("isWin()");
         if(checkRows() || checkColumns() || checkDiagonals()) return true;
         return false;
     };
@@ -120,13 +117,10 @@ const gameController = (() =>{
     };
 
     const declareNewRound = () => {
-        ++roundCount;
         if(whosTurn == playerOne.getSign()){
-            //console.log("O")
             whosTurn = playerTwo.getSign();
         }
         else{
-            //console.log("X")
             whosTurn = playerOne.getSign();
         }
     };
@@ -141,13 +135,11 @@ const gameController = (() =>{
         if(whosTurn == "X"){
             playerOne.takeInput(e.target.dataset.index);
         }
-        if(whosTurn == "O"){
+        else{
             playerTwo.takeInput(e.target.dataset.index);
         }
         screenController.changeSign(e.target, whosTurn);
-        if(isWin()){
-            end();
-        }
+        if(isWin()) end();
         screenController.removeEventListenerFromABox(e.target, 'click', playRound);
         if(gameBoard.checkIfAllFilled()) noWinEnd();
     };
@@ -155,8 +147,7 @@ const gameController = (() =>{
 
     return{
         getWhosTurn,
-        playRound,
-        roundCount
+        playRound
     };
     // track whos round
     // check if win
@@ -182,12 +173,8 @@ const screenController = (() =>{
     }
 
     const changeScore = (sign, score) => {
-        if(sign == "X"){
-            DOMscoreOne.innerHTML = `X score: ${score}`;
-        }
-        else{
-            DOMscoreTwo.innerHTML = `O score: ${score}`;
-        }
+        if(sign == "X") DOMscoreOne.innerHTML = `X score: ${score}`;
+        else DOMscoreTwo.innerHTML = `O score: ${score}`;
     };
 
     const changeSign = (box, sign) => {
