@@ -55,4 +55,13 @@ body {
     color: white;
     font-size: 32px;
     font-weight: 600;
+    display: flex;
+    gap: 24px;
+    flex-direction: column;
+}
+
+.score-holder{
+    display: flex;
+    gap: 2em;
+    margin-bottom: 1em;
 }

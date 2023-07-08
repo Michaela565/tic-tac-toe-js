@@ -15,11 +15,15 @@ const gameBoard = (() =>{
         boardArray = new Array(9);
     };
     
+    const checkIfAllFilled = () =>{
+        return !boardArray.includes(undefined);
+    };
+
     return{
         setSquare,
         getSquare,
         clear,
-        boardArray
+        checkIfAllFilled
     }
 })();
 
@@ -38,7 +42,7 @@ const player = (sign) =>{
     };
 
     const getScore = () => {
-        score;
+        return score;
     };
 
     const getSign = () => {
@@ -87,7 +91,7 @@ const gameController = (() =>{
         if(diagonalOne.every( square => square == undefined)) return false;
         if(diagonalOne.every( square => square == diagonalOne[0])) return true;
         if(diagonalTwo.every( square => square == undefined)) return false;
-        if(diagonalTwo.every( square => square == diagonalOne[0])) return true;
+        if(diagonalTwo.every( square => square == diagonalTwo[0])) return true;
         return false;
     }
 
@@ -100,13 +104,19 @@ const gameController = (() =>{
     const end = () => {
         if(whosTurn == playerOne.getSign()){
             playerOne.incrementScore();
-            console.log("X wins");
+            screenController.changeScore(playerOne.getSign(), playerOne.getScore());
         }
         else{
             playerTwo.incrementScore();
-            console.log("O wins");
+            screenController.changeScore(playerTwo.getSign(), playerTwo.getScore());
         }
-        return screenController.restart();
+        screenController.changeWhoWon(whosTurn);
+        screenController.giveRestartEventListeners();
+        return;
+    };
+
+    const noWinEnd = () => {
+        screenController.giveRestartEventListeners();
     };
 
     const declareNewRound = () => {
@@ -139,6 +149,7 @@ const gameController = (() =>{
             end();
         }
         screenController.removeEventListenerFromABox(e.target, 'click', playRound);
+        if(gameBoard.checkIfAllFilled()) noWinEnd();
     };
 
 
@@ -152,18 +163,32 @@ const gameController = (() =>{
 })();
 
 const screenController = (() =>{
-    const DOMgameBoard = document.getElementById("game-board");
     const DOMboardBoxes = document.querySelectorAll(".board-box");
     const DOMwhosTurn = document.querySelector(".whos-turn");
-    console.log(DOMboardBoxes);
+    const DOMwhoWon = document.querySelector(".who-won");
+    const DOMscoreOne = document.getElementById("score-one");
+    const DOMscoreTwo = document.getElementById("score-two");
     
     const addEventListenersToBoxes = (eventType, functionToExecute) => {
         DOMboardBoxes.forEach( box => box.addEventListener(eventType, functionToExecute));
     };
 
+    const removeEventListenersFromBoxes =  (eventType, functionToExecute) => {
+        DOMboardBoxes.forEach( box => box.removeEventListener(eventType, functionToExecute));
+    };
+
     const removeEventListenerFromABox = (box, eventType, functionToExecute) => {
         box.removeEventListener(eventType, functionToExecute);
     }
+
+    const changeScore = (sign, score) => {
+        if(sign == "X"){
+            DOMscoreOne.innerHTML = `X score: ${score}`;
+        }
+        else{
+            DOMscoreTwo.innerHTML = `O score: ${score}`;
+        }
+    };
 
     const changeSign = (box, sign) => {
         box.innerHTML = sign;
@@ -173,11 +198,25 @@ const screenController = (() =>{
         DOMwhosTurn.innerHTML = `It's ${sign} turn`;
     };
 
+    const changeWhoWon = (sign) => {
+        DOMwhoWon.innerHTML = `${sign} won`;
+    };
+
+    const giveRestartEventListeners = () => {
+        removeEventListenersFromBoxes('click', gameController.playRound);
+        addEventListenersToBoxes('click', restart);
+    };
+
+    const removeRestartEvenListeners = () => {
+        removeEventListenersFromBoxes('click', restart);
+    };
+
     const restart = () => {
-        DOMboardBoxes.forEach( box => box.removeEventListener('click', gameController.playRound));
-        DOMboardBoxes.forEach( box => box.innerHTML = "");
-        addEventListenersToBoxes('click', gameController.playRound);
         gameBoard.clear();
+        changeWhoWon("No one");
+        DOMboardBoxes.forEach( box => box.innerHTML = "");
+        removeRestartEvenListeners();
+        addEventListenersToBoxes('click', gameController.playRound);
     };
 
     addEventListenersToBoxes('click', gameController.playRound);
@@ -186,6 +225,9 @@ const screenController = (() =>{
         removeEventListenerFromABox,
         changeSign,
         changeWhosTurn,
+        changeWhoWon,
+        giveRestartEventListeners,
+        changeScore,
         restart
     };
     // displays gameboard
