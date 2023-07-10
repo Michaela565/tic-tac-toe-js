@@ -17,7 +17,7 @@ const gameBoard = (() =>{
     };
     
     const checkIfAllFilled = () =>{
-        return !boardArray.includes(undefined);
+        return !(boardArray.includes(undefined));
     };
 
     return{
@@ -53,10 +53,50 @@ const player = (sign) =>{
     return {getScore, incrementScore, takeInput, getSign};
 };
 
+const AIplayer = (sign) =>{
+    let score = 0;
+    const _sign = sign;
+    //const _level = level;
+
+    const {getScore, getSign, incrementScore, takeInput} = player(_sign);
+
+    const takeRandomLegalMove = () => {
+        console.log("hey");
+        //if(gameBoard.checkIfAllFilled)return;
+        console.log("now?");
+        let hasFoundAFreeSquare = true;
+        while(hasFoundAFreeSquare){
+            let randomSquare = Math.floor(Math.random() * 8);
+            if(gameBoard.getSquare(randomSquare) == undefined){
+                takeInput(randomSquare, _sign);
+                hasFoundAFreeSquare = false;
+                return randomSquare;
+            }
+        }
+    };
+
+    const isAI = () => {
+        return true;
+    };
+    return{
+        takeRandomLegalMove,
+        getSign,
+        getScore,
+        incrementScore,
+        takeInput,
+        isAI
+    }
+};
+
 const gameController = (() =>{
     let whosTurn = "X";
-    const playerOne = player("X");
+    let playerOne = player("X");
     const playerTwo = player("O");
+
+    const createAIPlayer = () => {
+        playerOne = AIplayer("X");
+    };
+
 
     const checkRows = () =>{
         for (let i = 0; i < 3; i++) {
@@ -107,8 +147,9 @@ const gameController = (() =>{
             playerTwo.incrementScore();
             screenController.changeScore(playerTwo.getSign(), playerTwo.getScore());
         }
-        screenController.changeWhoWon(whosTurn);
+        screenController.changeWhoWon(whosTurn, true);
         screenController.giveRestartEventListeners();
+        whosTurn = "X";
         return;
     };
 
@@ -129,25 +170,45 @@ const gameController = (() =>{
         return whosTurn;
     };
 
-    const playRound = (e) => {
-        screenController.changeWhosTurn(getWhosTurn());
+    const playRoundWithAI = () =>{
+        let AIindex;
         declareNewRound();
-        if(whosTurn == "X"){
-            playerOne.takeInput(e.target.dataset.index);
+        AIindex = playerOne.takeRandomLegalMove();
+        const selectedSquare = document.querySelector(`[data-index = "${AIindex}"]`)
+        screenController.changeSign(selectedSquare, whosTurn);
+        screenController.removeEventListenerFromABox(selectedSquare, 'click', playRound);
+        if(isWin()) end();
+        if(gameBoard.checkIfAllFilled()) noWinEnd();
+    };
+
+    const playRound = (e) => {
+        declareNewRound();
+        screenController.changeWhosTurn(getWhosTurn());
+        if(whosTurn == "O"){
+            playerTwo.takeInput(e.target.dataset.index);
+            screenController.changeSign(e.target, whosTurn);
+            screenController.removeEventListenerFromABox(e.target, 'click', playRound);
+            if(isWin()) return end();
+            if(gameBoard.checkIfAllFilled()) noWinEnd();
+            if(playerOne.isAI){
+                playRoundWithAI();
+            } 
         }
         else{
-            playerTwo.takeInput(e.target.dataset.index);
+            playerOne.takeInput(e.target.dataset.index);
+            screenController.changeSign(e.target, whosTurn);
+            screenController.removeEventListenerFromABox(e.target, 'click', playRound);
+            if(isWin()) end();
+            if(gameBoard.checkIfAllFilled()) noWinEnd();
         }
-        screenController.changeSign(e.target, whosTurn);
-        if(isWin()) end();
-        screenController.removeEventListenerFromABox(e.target, 'click', playRound);
-        if(gameBoard.checkIfAllFilled()) noWinEnd();
+        
     };
 
 
     return{
         getWhosTurn,
-        playRound
+        playRound,
+        createAIPlayer
     };
     // track whos round
     // check if win
@@ -159,7 +220,25 @@ const screenController = (() =>{
     const DOMwhoWon = document.querySelector(".who-won");
     const DOMscoreOne = document.getElementById("score-one");
     const DOMscoreTwo = document.getElementById("score-two");
+    const DOMrestartBtn = document.querySelector(".restart-btn");
+    const DOMoverlay = document.querySelector(".overlay-holder");
+    const DOMTwoPlayerButton = document.querySelector("#two-players");
+    const DOMOnePlayerButton = document.querySelector("#one-player");
     
+    const addSelectionButtonListeners = () => {
+        DOMTwoPlayerButton.addEventListener('click', turnOffOverlay);
+        DOMOnePlayerButton.addEventListener('click', turnOffOverlay);
+        DOMOnePlayerButton.addEventListener('click', gameController.createAIPlayer);
+    };
+
+    const turnOffOverlay = () => {
+        DOMoverlay.style.display = "none";
+    };
+
+    const addEventListenerToRestartBtn = () =>{
+        DOMrestartBtn.addEventListener("click", restart);
+    };
+
     const addEventListenersToBoxes = (eventType, functionToExecute) => {
         DOMboardBoxes.forEach( box => box.addEventListener(eventType, functionToExecute));
     };
@@ -185,8 +264,10 @@ const screenController = (() =>{
         DOMwhosTurn.innerHTML = `It's ${sign} turn`;
     };
 
-    const changeWhoWon = (sign) => {
+    const changeWhoWon = (sign, shouldAddClass) => {
         DOMwhoWon.innerHTML = `${sign} won`;
+        if(shouldAddClass)DOMwhoWon.classList= "win";
+        else DOMwhoWon.classList = "";
     };
 
     const giveRestartEventListeners = () => {
@@ -200,13 +281,15 @@ const screenController = (() =>{
 
     const restart = () => {
         gameBoard.clear();
-        changeWhoWon("No one");
+        changeWhoWon("No one", false);
         DOMboardBoxes.forEach( box => box.innerHTML = "");
         removeRestartEvenListeners();
         addEventListenersToBoxes('click', gameController.playRound);
     };
 
     addEventListenersToBoxes('click', gameController.playRound);
+    addEventListenerToRestartBtn();
+    addSelectionButtonListeners();
 
     return{
         removeEventListenerFromABox,
