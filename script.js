@@ -1,28 +1,40 @@
 const gameBoard = (() =>{
     // creates the game board
     // stores data in it
-    boardArray = new Array(9);
+    let boardArray = [];
+    for (let i = 0; i < 9; i++) {
+        boardArray.push(null);
+        
+    }
 
     const setSquare = (index, playerSign) => {
         boardArray[index] = playerSign;
     };
 
     const clearSquare = (index) => {
-        boardArray[index] = undefined;
+        boardArray[index] = null;
     }
 
     const getSquare = (index) => {
         return boardArray[index];
     };
 
+    const getArray = () => {
+        return boardArray;
+    };
 
     const clear = () => {
-        boardArray = undefined;
-        boardArray = new Array(9);
+        boardArray = [];
+
+        for (let i = 0; i < 9; i++) {
+            boardArray.push(null);
+            console.log(boardArray); 
+        }
+        //boardArray = new Array(9);
     };
     
     const checkIfAllFilled = () =>{
-        return !(boardArray.includes(undefined));
+        return !(boardArray.includes(null));
     };
 
     return{
@@ -31,7 +43,7 @@ const gameBoard = (() =>{
         clear,
         clearSquare,
         checkIfAllFilled,
-        boardArray
+        getArray
     }
 })();
 
@@ -74,7 +86,7 @@ const AIplayer = (sign) =>{
         let hasFoundAFreeSquare = true;
         while(hasFoundAFreeSquare){
             let randomSquare = Math.floor(Math.random() * 8);
-            if(gameBoard.getSquare(randomSquare) == undefined){
+            if(gameBoard.getSquare(randomSquare) == null){
                 //takeInput(randomSquare, _sign);
                 hasFoundAFreeSquare = false;
                 return randomSquare;
@@ -105,10 +117,10 @@ const AIplayer = (sign) =>{
 
                 for (let j = 1; j <= 3; j++) {
 
-                    if(gameBoard.getSquare((i*j)-1) == undefined){
+                    if(gameBoard.getSquare((i*j)-1) == null){
 
-                        gameBoard.setSquare((i*j)-1, getSign());
-                        gameController.setWhosTurn(getSign());
+                        takeInput((i*j)-1);
+                        gameController.setWhosTurn(_sign);
                         best = Math.max(best, minimax(depth + 1, !isMax));
                         gameBoard.clearSquare((i*j)-1);
 
@@ -125,7 +137,7 @@ const AIplayer = (sign) =>{
 
                 for (let j = 1; j <= 3; j++) {
 
-                    if(gameBoard.getSquare((i*j)-1) == undefined){
+                    if(gameBoard.getSquare((i*j)-1) == null){
 
                         gameBoard.setSquare((i*j)-1, "O");
                         gameController.setWhosTurn("O");
@@ -150,11 +162,11 @@ const AIplayer = (sign) =>{
             
             for (let j = 1; j <= 3; j++) {
                 
-                if(gameBoard.getSquare((i*j)-1) == undefined){
+                if(gameBoard.getSquare((i*j)-1) == null){
 
-                    gameBoard.setSquare((i*j)-1, getSign());
+                    takeInput((i*j)-1);
                     
-                    gameController.setWhosTurn(getSign());
+                    gameController.setWhosTurn(_sign);
 
                     let moveVal = minimax(0, false);
 
@@ -173,10 +185,10 @@ const AIplayer = (sign) =>{
                 
             }
         }
-        console.log(gameBoard.boardArray); // TO DO: after 1 game it still prints the old array, maybe the whole algorithm
+        console.log(gameBoard.getArray()); // TO DO: after 1 game it still prints the old array, maybe the whole algorithm
         console.log(bestMoveIndex); // works with the wrong array after 1 run
         takeInput(bestMoveIndex);
-        console.log(gameBoard.boardArray);
+        console.log(gameBoard.getArray());
         gameController.setWhosTurn(getSign());
         return bestMoveIndex;
     };
@@ -212,7 +224,7 @@ const gameController = (() =>{
             for (let j = i * 3; j < i * 3 + 3; j++) {
                 row.push(gameBoard.getSquare(j));
             }
-            if(row.every( square => square == undefined)) return false;
+            if(row.every( square => square == null)) return false;
             if(row.every( square => square == row[0])) return true;
         }
         return false
@@ -225,7 +237,7 @@ const gameController = (() =>{
                 column.push(gameBoard.getSquare(j));
             }
             
-            if(column.every( square => square == undefined)) return false;
+            if(column.every( square => square == null)) return false;
             if(column.every( square => square == column[0])) return true;
         }
         return false
@@ -234,9 +246,9 @@ const gameController = (() =>{
     const checkDiagonals = () => {
         const diagonalOne = [gameBoard.getSquare(0), gameBoard.getSquare(4), gameBoard.getSquare(8)];
         const diagonalTwo = [gameBoard.getSquare(2), gameBoard.getSquare(4), gameBoard.getSquare(6)];
-        if(diagonalOne.every( square => square == undefined)) return false;
+        if(diagonalOne.every( square => square == null)) return false;
         if(diagonalOne.every( square => square == diagonalOne[0])) return true;
-        if(diagonalTwo.every( square => square == undefined)) return false;
+        if(diagonalTwo.every( square => square == null)) return false;
         if(diagonalTwo.every( square => square == diagonalTwo[0])) return true;
         return false;
     }
@@ -326,7 +338,7 @@ const gameController = (() =>{
             if(isWin()) end();
             if(gameBoard.checkIfAllFilled()) noWinEnd();
         }
-        
+        console.log(gameBoard.getArray());
     };
 
 
