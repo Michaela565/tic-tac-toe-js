@@ -4,7 +4,6 @@ const gameBoard = (() =>{
     let boardArray = [];
     for (let i = 0; i < 9; i++) {
         boardArray.push(null);
-        
     }
 
     const setSquare = (index, playerSign) => {
@@ -19,10 +18,6 @@ const gameBoard = (() =>{
         return boardArray[index];
     };
 
-    const getArray = () => {
-        return boardArray;
-    };
-
     const clear = () => {
         boardArray = [];
 
@@ -30,7 +25,7 @@ const gameBoard = (() =>{
             boardArray.push(null);
             console.log(boardArray); 
         }
-        //boardArray = new Array(9);
+
     };
     
     const checkIfAllFilled = () =>{
@@ -42,8 +37,7 @@ const gameBoard = (() =>{
         getSquare,
         clear,
         clearSquare,
-        checkIfAllFilled,
-        getArray
+        checkIfAllFilled
     }
 })();
 
@@ -75,39 +69,26 @@ const player = (sign) =>{
 const AIplayer = (sign) =>{
     let score = 0;
     const _sign = sign;
-    //const _level = level;
 
     const {getScore, getSign, incrementScore, takeInput} = player(_sign);
 
     const takeRandomLegalMove = () => {
-        console.log("hey");
-        //if(gameBoard.checkIfAllFilled)return;
-        console.log("now?");
-        let hasFoundAFreeSquare = true;
-        while(hasFoundAFreeSquare){
+        let hasntFoundAFreeSquare = true;
+        while(hasntFoundAFreeSquare){
             let randomSquare = Math.floor(Math.random() * 8);
             if(gameBoard.getSquare(randomSquare) == null){
-                //takeInput(randomSquare, _sign);
-                hasFoundAFreeSquare = false;
+                hasntFoundAFreeSquare = false;
                 return randomSquare;
             }
         }
     };
 
-    //board has to be the array returned by gameBoard object, not the gameBoard object itself
     const minimax = (depth, isMax) =>{
 
-        //console.log(gameController.getWhosTurn());
         let score = gameController.whoWon();
 
-        if(score == 10){
-            console.log(score)
-            return score;
-        } 
-        if(score == -10){
-            console.log(score)
-            return score;
-        }
+        if(score == 10 || score == -10) return score;
+        
         if(gameBoard.checkIfAllFilled()) return 0;
 
         if (isMax) {
@@ -118,12 +99,10 @@ const AIplayer = (sign) =>{
                 for (let j = 1; j <= 3; j++) {
 
                     if(gameBoard.getSquare((i*j)-1) == null){
-
                         takeInput((i*j)-1);
                         gameController.setWhosTurn(_sign);
                         best = Math.max(best, minimax(depth + 1, !isMax));
                         gameBoard.clearSquare((i*j)-1);
-
                     }
                 }
                 
@@ -138,7 +117,6 @@ const AIplayer = (sign) =>{
                 for (let j = 1; j <= 3; j++) {
 
                     if(gameBoard.getSquare((i*j)-1) == null){
-
                         gameBoard.setSquare((i*j)-1, "O");
                         gameController.setWhosTurn("O");
                         best = Math.min(best, minimax(depth + 1, !isMax));
@@ -148,7 +126,6 @@ const AIplayer = (sign) =>{
                 }
                 
             }
-            //console.log(best);
             return best - depth;
         }
 
@@ -165,30 +142,22 @@ const AIplayer = (sign) =>{
                 if(gameBoard.getSquare((i*j)-1) == null){
 
                     takeInput((i*j)-1);
-                    
                     gameController.setWhosTurn(_sign);
 
                     let moveVal = minimax(0, false);
-
-                    //console.log(moveVal);
 
                     gameBoard.clearSquare((i*j)-1);
 
                     if (moveVal > bestVal){
                         bestMoveIndex = (i*j) - 1;
-                        //console.log(bestMoveIndex);
                         bestVal = moveVal;
-                        gameBoard.clearSquare((i*j)-1);
                     }
 
                 }
                 
             }
         }
-        console.log(gameBoard.getArray()); // TO DO: after 1 game it still prints the old array, maybe the whole algorithm
-        console.log(bestMoveIndex); // works with the wrong array after 1 run
         takeInput(bestMoveIndex);
-        console.log(gameBoard.getArray());
         gameController.setWhosTurn(getSign());
         return bestMoveIndex;
     };
@@ -198,7 +167,6 @@ const AIplayer = (sign) =>{
     };
 
     return{
-        takeRandomLegalMove,
         getSign,
         getScore,
         incrementScore,
@@ -216,7 +184,6 @@ const gameController = (() =>{
     const createAIPlayer = () => {
         playerOne = AIplayer("X");
     };
-
 
     const checkRows = () =>{
         for (let i = 0; i < 3; i++) {
@@ -259,20 +226,14 @@ const gameController = (() =>{
     };
 
     const whoWon = () => {
-        //console.log(getWhosTurn)
         if(isWin()){
-            if(getWhosTurn() == "X"){
-                
-                return +10;
-            }
-            else{
-                return -10;
-            }
+            if(getWhosTurn() == "X")return +10;
+            return -10;
         }
     };
 
     const end = () => {
-        if(whosTurn == playerOne.getSign()){
+        if(getWhosTurn() == playerOne.getSign()){
             playerOne.incrementScore();
             screenController.changeScore(playerOne.getSign(), playerOne.getScore());
         }
@@ -280,9 +241,9 @@ const gameController = (() =>{
             playerTwo.incrementScore();
             screenController.changeScore(playerTwo.getSign(), playerTwo.getScore());
         }
-        screenController.changeWhoWon(whosTurn, true);
+        screenController.changeWhoWon(getWhosTurn(), true);
         screenController.giveRestartEventListeners();
-        whosTurn = "X";
+        setWhosTurn("X");
         return;
     };
 
@@ -291,12 +252,8 @@ const gameController = (() =>{
     };
 
     const declareNewRound = () => {
-        if(whosTurn == playerOne.getSign()){
-            whosTurn = playerTwo.getSign();
-        }
-        else{
-            whosTurn = playerOne.getSign();
-        }
+        if(getWhosTurn() == playerOne.getSign())return setWhosTurn(playerTwo.getSign());
+        setWhosTurn(playerOne.getSign());
     };
 
     const getWhosTurn = () => {
@@ -311,9 +268,8 @@ const gameController = (() =>{
         let AIindex;
         declareNewRound();
         AIindex = playerOne.findTheBestMove(gameBoard);
-        //console.log(gameBoard.boardArray);
         const selectedSquare = document.querySelector(`[data-index = "${AIindex}"]`)
-        screenController.changeSign(selectedSquare, whosTurn);
+        screenController.changeSign(selectedSquare, getWhosTurn());
         screenController.removeEventListenerFromABox(selectedSquare, 'click', playRound);
         if(isWin()) end();
     };
@@ -321,24 +277,21 @@ const gameController = (() =>{
     const playRound = (e) => {
         declareNewRound();
         screenController.changeWhosTurn(getWhosTurn());
-        if(whosTurn == "O"){
+        if(getWhosTurn() == "O"){
             playerTwo.takeInput(e.target.dataset.index);
-            screenController.changeSign(e.target, whosTurn);
+            screenController.changeSign(e.target, getWhosTurn());
             screenController.removeEventListenerFromABox(e.target, 'click', playRound);
             if(isWin()) return end();
             if(gameBoard.checkIfAllFilled()) noWinEnd();
-            if(playerOne.isAI){
-                playRoundWithAI();
-            } 
+            if(playerOne.isAI) playRoundWithAI();
         }
         else{
             playerOne.takeInput(e.target.dataset.index);
-            screenController.changeSign(e.target, whosTurn);
+            screenController.changeSign(e.target, getWhosTurn());
             screenController.removeEventListenerFromABox(e.target, 'click', playRound);
             if(isWin()) end();
             if(gameBoard.checkIfAllFilled()) noWinEnd();
         }
-        console.log(gameBoard.getArray());
     };
 
 
